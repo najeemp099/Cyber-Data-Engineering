@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Large datasets
+data/bronze/*
+data/silver/*
+data/gold/*
+
+# Generated results
+results/*
+visualizations/*
+
+# Environment files
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
