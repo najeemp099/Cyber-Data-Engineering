@@ -1,0 +1,8 @@
+project:
+  name: cybersecurity-data-pipeline
+  version: 0.1.0
+
+data:
+  bronze_path: data/bronze
+  silver_path: data/silver
+  gold_path: data/gold
