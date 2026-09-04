@@ -1,10 +1,3 @@
-from pathlib import Path
-import pandas as pd
-
-
-BRONZE_FILE = Path("data/bronze/sample_network_traffic.parquet")
-SILVER_PATH = Path("data/silver")
-
 def clean_data():
     df = pd.read_parquet(BRONZE_FILE)
 
@@ -12,11 +5,22 @@ def clean_data():
     print(f"Rows before cleaning: {len(df)}")
 
     df = df.drop_duplicates()
+
     print("\nMissing values:")
     print(df.isnull().sum())
 
     print("\nData types:")
     print(df.dtypes)
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+
+    df["src_port"] = pd.to_numeric(df["src_port"], errors="coerce")
+    df["dst_port"] = pd.to_numeric(df["dst_port"], errors="coerce")
+    df["packet_count"] = pd.to_numeric(df["packet_count"], errors="coerce")
+    df["bytes"] = pd.to_numeric(df["bytes"], errors="coerce")
+
+    df["protocol"] = df["protocol"].str.upper().str.strip()
+    df["label"] = df["label"].str.upper().str.strip()
 
     SILVER_PATH.mkdir(parents=True, exist_ok=True)
 
@@ -27,6 +31,3 @@ def clean_data():
     print(f"Silver file created: {silver_file}")
 
     return df
-
-if __name__ =="__main__":
-    clean_data()
