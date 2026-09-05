@@ -26,10 +26,16 @@ FEATURE_COLUMNS = [
 
 def benchmark_dataset(df, size):
 
-    df = df.iloc[:size].copy()
+    # Select a representative sample while preserving both classes
+    df_sample, _ = train_test_split(
+        df,
+        train_size=size,
+        random_state=42,
+        stratify=df["is_attack"]
+    )
 
-    X = df[FEATURE_COLUMNS]
-    y = df["is_attack"]
+    X = df_sample[FEATURE_COLUMNS]
+    y = df_sample["is_attack"]
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -61,14 +67,6 @@ if __name__ == "__main__":
 
     print(f"Found {len(files)} Gold files")
 
-    file = files[0]
-
-    print(f"\nLoading: {file.name}")
-
-    df = pd.read_parquet(file)
-
-    print(f"Total rows: {len(df)}")
-
     dataset_sizes = [
         100_000,
         250_000,
@@ -78,25 +76,35 @@ if __name__ == "__main__":
 
     results = []
 
-    for size in dataset_sizes:
+    for file in files:
 
-        if size > len(df):
-            continue
+        print(f"\n{'=' * 60}")
+        print(f"Loading: {file.name}")
 
-        print(f"\nBenchmarking {size:,} rows...")
+        df = pd.read_parquet(file)
 
-        training_time = benchmark_dataset(df, size)
+        print(f"Total rows: {len(df):,}")
 
-        print(
-            f"Dataset size: {size:,} | "
-            f"Training time: {training_time:.4f} seconds"
-        )
+        for size in dataset_sizes:
 
-        results.append({
-            "algorithm": "LogisticRegression",
-            "dataset_size": size,
-            "training_time": training_time
-        })
+            if size > len(df):
+                continue
+
+            print(f"\nBenchmarking {size:,} rows...")
+
+            training_time = benchmark_dataset(df, size)
+
+            print(
+                f"Dataset size: {size:,} | "
+                f"Training time: {training_time:.4f} seconds"
+            )
+
+            results.append({
+                "dataset": file.stem,
+                "algorithm": "LogisticRegression",
+                "dataset_size": size,
+                "training_time": training_time
+            })
 
     results_df = pd.DataFrame(results)
 
@@ -116,4 +124,8 @@ if __name__ == "__main__":
     )
 
     print("\nTime per row:")
-    print(results_df[["dataset_size", "time_per_row"]])
+    print(
+        results_df[
+            ["dataset", "dataset_size", "time_per_row"]
+        ]
+    )
